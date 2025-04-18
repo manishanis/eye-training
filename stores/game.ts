@@ -250,7 +250,10 @@ export const useGameStore = defineStore('game', {
         });
       });
 
-      // Assign grid positions before shuffling (or after, doesn't strictly matter here)
+      // Shuffle the options to randomize their order
+      shuffleArray(newOptions);
+
+      // Assign grid positions after shuffling
       this.occupiedCells.clear();
       const assignedOptions: Option[] = [];
       let currentGridRow = 0;
