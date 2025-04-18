@@ -1,45 +1,60 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onMounted } from 'vue';
+import { storeToRefs } from 'pinia';
+import { useGameStore } from '@/stores/game';
+
 // Nuxt 3 auto-imports components/
-// No explicit imports needed for TargetDisplay, OptionsArea, etc.
 
-// --- Placeholder Data for Phase 2 ---
-const placeholderTarget = ref('AB');
-const placeholderOptions = ref([
-  { letters: 'CD', id: 'opt1' },
-  { letters: 'EF', id: 'opt2' },
-  { letters: 'AB', id: 'opt3' }, // The correct one
-  { letters: 'GH', id: 'opt4' },
-  { letters: 'IJ', id: 'opt5' },
-]);
-const placeholderScore = ref(0);
-const placeholderRound = ref(1);
-// --- End Placeholder Data ---
+// --- Connect to Pinia Store ---
+const gameStore = useGameStore();
 
-// Placeholder: Import the store - will be used in Phase 3
-// import { useGameStore } from '@/stores/game';
-// const gameStore = useGameStore();
+// Use storeToRefs to keep reactivity for state properties
+const {
+  currentTarget,
+  currentOptions,
+  score,
+  currentRound,
+  gameState,
+  // warmupRoundsLeft // Example getter if needed for display
+} = storeToRefs(gameStore);
 
-// Placeholder: Call startGame or startWarmup on mount (example)
-// import { onMounted } from 'vue';
-// onMounted(() => {
-//   gameStore.startWarmup(); // Or startGame()
-// });
+// Actions can be destructured directly
+const {
+  startWarmup,
+  // startGame, // Can call directly if needed
+  selectOption,
+  pauseGame,
+  resumeGame
+} = gameStore;
+// --- End Store Connection ---
 
-// Placeholder handler for option selection - will call store action in Phase 4
-function handleOptionSelected(optionId: string | number) {
+
+// Start the warmup phase when the component is mounted
+onMounted(() => {
+  // Check if the game isn't already in a running state (e.g., due to HMR)
+  if (gameState.value === 'idle') {
+     startWarmup();
+  }
+});
+
+// Handler for option selection - calls the store action
+function handleOptionSelected(optionId: string) {
+  // Prevent selection if paused or game over
+  if (gameState.value === 'paused' || gameState.value === 'gameOver') {
+    return;
+  }
   console.log('Option selected in GameContainer:', optionId);
-  // Find the selected option text for demo purposes
-  const selected = placeholderOptions.value.find(opt => opt.id === optionId);
-  alert(`You selected: ${selected?.letters} (ID: ${optionId})`);
-  // In Phase 4, this will call gameStore.selectOption(optionId)
+  selectOption(optionId); // Call the store action
 }
 
-// Placeholder handler for pause toggle - will call store action in Phase 5
+// Handler for pause toggle - calls the appropriate store action
 function handleTogglePause() {
     console.log('Toggle Pause clicked');
-    alert('Pause toggled!');
-    // In Phase 5, this will call gameStore.pauseGame() or gameStore.resumeGame()
+    if (gameState.value === 'paused') {
+      resumeGame();
+    } else if (gameState.value === 'playing' || gameState.value === 'warmup') {
+      pauseGame();
+    }
 }
 
 </script>
@@ -47,20 +62,33 @@ function handleTogglePause() {
 <template>
   <div class="game-container p-4 max-w-2xl mx-auto min-h-screen flex flex-col">
     <!-- Header: Scoreboard -->
+    <!-- Header: Scoreboard - Use reactive state from store -->
     <header class="mb-4 flex-shrink-0">
       <ScoreBoard
-        :score="placeholderScore"
-        :round="placeholderRound"
-      />
+        :score="score"
+        :round="currentRound"
+        />
+        <!-- :warmupRoundsLeft="warmupRoundsLeft" -->
     </header>
 
-    <!-- Main Game Area -->
+    <!-- Main Game Area - Use reactive state from store -->
     <main class="mb-4 flex-grow flex flex-col justify-center">
-      <TargetDisplay :target-letters="placeholderTarget" />
-      <OptionsArea
-        :options="placeholderOptions"
-        @select-option="handleOptionSelected"
-      />
+      <!-- Display Target/Options only when game is active -->
+      <template v-if="gameState === 'playing' || gameState === 'warmup' || gameState === 'paused'">
+        <TargetDisplay :target-letters="currentTarget" />
+        <OptionsArea
+          :options="currentOptions"
+          @select-option="handleOptionSelected"
+        />
+      </template>
+      <!-- Placeholder for other states like idle, gameOver -->
+      <div v-else-if="gameState === 'idle'" class="text-center text-xl">
+        Loading game...
+      </div>
+       <div v-else-if="gameState === 'gameOver'" class="text-center text-xl">
+        Game Over! Final Score: {{ score }}
+        <!-- TODO: Add restart button -->
+      </div>
     </main>
 
     <!-- Footer: Controls -->
