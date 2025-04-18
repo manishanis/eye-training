@@ -1,22 +1,34 @@
 <script setup lang="ts">
-// Placeholder for OptionsArea component
-// Props and logic will be added later
+// Define the structure for an option expected in the prop
+interface Option {
+  letters: string;
+  id: string | number;
+}
+
+defineProps<{
+  options: Option[];
+}>();
+
+// Emits will be handled in Phase 4
+// const emit = defineEmits(['selectOption']);
 </script>
 
 <template>
-  <div class="options-area">
-    <!-- Placeholder content -->
-    <p>Options Area</p>
-    <!-- OptionItem components will be rendered here -->
+  <div class="options-area bg-orange-900/30 p-6 rounded-lg min-h-[250px] relative">
+    <!-- Layout for Option Items -->
+    <div class="flex flex-wrap justify-center items-center gap-4">
+      <OptionItem
+        v-for="option in options"
+        :key="option.id"
+        :letters="option.letters"
+        :id="option.id"
+        @select="$emit('selectOption', $event)"
+      />
+    </div>
+    <!-- Background dots will be added later -->
   </div>
 </template>
 
 <style scoped>
-/* Placeholder styles */
-.options-area {
-  padding: 1rem;
-  border: 1px dashed lightcoral;
-  margin-top: 1rem;
-  min-height: 150px;
-}
+/* Scoped styles for OptionsArea if needed */
 </style>

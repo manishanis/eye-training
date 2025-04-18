@@ -1,24 +1,19 @@
 <script setup lang="ts">
-// Placeholder for PauseButton component
-// Emits will be added later
+// Props and Emits will be added later
+// defineProps<{ isPaused: boolean }>();
+// const emit = defineEmits(['togglePause']);
 </script>
 
 <template>
-  <button class="pause-button">
-    <!-- Placeholder content -->
+  <button
+    class="pause-button px-4 py-2 rounded bg-gray-600 hover:bg-gray-500 text-white font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-blue-500 transition-colors duration-150"
+    @click="$emit('togglePause')"
+  >
+    <!-- Placeholder text - icon/text will change based on state later -->
     <span>Pause</span>
   </button>
 </template>
 
 <style scoped>
-/* Placeholder styles */
-.pause-button {
-  padding: 0.5rem 1rem;
-  border: 1px solid grey;
-  margin-top: 1rem;
-  cursor: pointer;
-}
-.pause-button:hover {
-  background-color: lightgray;
-}
+/* Scoped styles for PauseButton if needed */
 </style>

@@ -1,19 +1,19 @@
 <script setup lang="ts">
-// Placeholder for TargetDisplay component
-// Props will be defined in Phase 2
+defineProps<{
+  targetLetters: string;
+}>();
 </script>
 
 <template>
-  <div class="target-display">
-    <!-- Placeholder content -->
-    <p>Target: XX</p>
+  <div class="target-display text-center p-4 my-4">
+    <span
+      class="text-6xl font-bold tracking-widest p-4 border-4 border-yellow-500 rounded-lg bg-gray-800 text-yellow-300"
+    >
+      {{ targetLetters }}
+    </span>
   </div>
 </template>
 
 <style scoped>
-/* Placeholder styles */
-.target-display {
-  padding: 0.5rem;
-  border: 1px dashed lightblue;
-}
+/* Scoped styles for TargetDisplay if needed */
 </style>

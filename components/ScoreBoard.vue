@@ -1,20 +1,20 @@
 <script setup lang="ts">
-// Placeholder for ScoreBoard component
-// Props will be added later
+defineProps<{
+  score: number;
+  round: number;
+  // warmupRoundsLeft?: number; // Optional prop for warmup
+}>();
 </script>
 
 <template>
-  <div class="score-board">
-    <!-- Placeholder content -->
-    <p>Score: 0 | Round: 0</p>
+  <div class="score-board flex justify-between items-center text-lg font-semibold text-gray-300 px-2">
+    <span>Score: {{ score }}</span>
+    <span>Round: {{ round }}</span>
+    <!-- Optional Warmup display -->
+    <!-- <span v-if="warmupRoundsLeft !== undefined">Warmup Left: {{ warmupRoundsLeft }}</span> -->
   </div>
 </template>
 
 <style scoped>
-/* Placeholder styles */
-.score-board {
-  padding: 0.5rem;
-  border: 1px dashed lightgreen;
-  margin-top: 1rem;
-}
+/* Scoped styles for ScoreBoard if needed */
 </style>

@@ -11,12 +11,11 @@
 </script>
 
 <style>
-/* Optional: Add global styles or body background here if needed */
+/* Global styles */
 body {
   margin: 0;
   font-family: sans-serif;
-  /* Example dark theme background - adjust as needed */
-  /* background-color: #1a202c; */
-  /* color: #cbd5e0; */
+  /* Apply dark theme background and default text color */
+  @apply bg-gray-900 text-gray-200;
 }
 </style>
