@@ -19,6 +19,8 @@ const {
   feedbackOptionId,
   lastSelectionCorrect,
   isFeedbackActive,
+  // Getters can also be refs via storeToRefs
+  isPaused,
 } = storeToRefs(gameStore);
 
 // Actions can be destructured directly
@@ -83,7 +85,7 @@ function handleTogglePause() {
           :options="currentOptions"
           :feedback-option-id="feedbackOptionId"
           :last-selection-correct="lastSelectionCorrect"
-          :is-feedback-active="isFeedbackActive"
+          :is-feedback-active="isFeedbackActive || isPaused"  
           @select-option="handleOptionSelected"
         />
       </template>
@@ -97,9 +99,12 @@ function handleTogglePause() {
       </div>
     </main>
 
-    <!-- Footer: Controls -->
+    <!-- Footer: Controls - Pass isPaused state -->
     <footer class="flex justify-center py-4 flex-shrink-0">
-      <PauseButton @toggle-pause="handleTogglePause" />
+      <PauseButton
+        :is-paused="isPaused"
+        @toggle-pause="handleTogglePause"
+      />
     </footer>
   </div>
 </template>

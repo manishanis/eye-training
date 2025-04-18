@@ -6,21 +6,26 @@ interface Option {
   isCorrect: boolean; // Include correctness info if needed, though store handles logic
 }
 
-defineProps<{
+import BackgroundDots from './BackgroundDots.vue'; // Import the new component
+
+const emit = defineEmits(['selectOption']);
+
+// Feedback state passed down from GameContainer
+const props = defineProps<{ // Define props explicitly to access isPaused
   options: Option[];
-  // Feedback state passed down from GameContainer
   feedbackOptionId: string | null;
   lastSelectionCorrect: boolean | null;
   isFeedbackActive: boolean;
 }>();
 
-const emit = defineEmits(['selectOption']);
 </script>
 
 <template>
   <div class="options-area bg-orange-900/30 p-6 rounded-lg min-h-[250px] relative">
-    <!-- Layout for Option Items -->
-    <div class="flex flex-wrap justify-center items-center gap-4">
+     <!-- Background Dots Layer -->
+    <BackgroundDots :is-paused="props.isFeedbackActive" /> <!-- Pause dots during feedback -->
+    <!-- Layout for Option Items (ensure it's above the dots) -->
+    <div class="relative z-10 flex flex-wrap justify-center items-center gap-4">
       <OptionItem
         v-for="option in options"
         :key="option.id"

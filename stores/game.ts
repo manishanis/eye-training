@@ -56,9 +56,10 @@ interface GameState {
   warmupRoundsCompleted: number;
   dotPositions: DotPosition[];
   // Feedback state
-  feedbackOptionId: string | null; // ID of the option just selected
-  lastSelectionCorrect: boolean | null; // Was the last selection correct?
-  isFeedbackActive: boolean; // Controls if feedback styling is shown
+  feedbackOptionId: string | null;
+  lastSelectionCorrect: boolean | null;
+  isFeedbackActive: boolean;
+  stateBeforePause: 'warmup' | 'playing' | null; // Track state before pausing
 }
 
 export const useGameStore = defineStore('game', {
@@ -75,6 +76,7 @@ export const useGameStore = defineStore('game', {
     feedbackOptionId: null,
     lastSelectionCorrect: null,
     isFeedbackActive: false,
+    stateBeforePause: null,
   }),
 
   actions: {
@@ -207,24 +209,31 @@ export const useGameStore = defineStore('game', {
       }
     },
 
-    // Placeholder for pauseGame action
+    // Pauses the game
     pauseGame() {
       if (this.gameState === 'playing' || this.gameState === 'warmup') {
+        this.stateBeforePause = this.gameState; // Store the current state
         this.gameState = 'paused';
         console.log('Game paused');
-        // TODO: Pause timers/animations (Phase 5)
+        // CSS animation pauses automatically via :is-paused prop change
       }
     },
 
-    // Placeholder for resumeGame action
+    // Resumes the game from a paused state
     resumeGame() {
-      if (this.gameState === 'paused') {
-        // Determine whether to return to 'playing' or 'warmup'
-        // This might need refinement based on exact game flow
-        this.gameState = 'playing'; // Or 'warmup' if paused during warmup
-        console.log('Game resumed');
-        // TODO: Resume timers/animations (Phase 5)
+      if (this.gameState !== 'paused') return;
+
+      // Restore the game state from before pausing
+      if (!this.stateBeforePause) {
+        // Fallback if stateBeforePause wasn't set (shouldn't happen in normal flow)
+        console.warn('State before pause was not set. Falling back based on warmup completion.');
+        this.gameState = (this.warmupRoundsCompleted >= this.warmupRoundsTotal) ? 'playing' : 'warmup';
+      } else {
+        this.gameState = this.stateBeforePause; // Restore the correct state
       }
+      this.stateBeforePause = null; // Clear the stored state after restoring
+      console.log(`Game resumed to ${this.gameState}`);
+      // CSS animation resumes automatically via :is-paused prop change in components
     },
 
     // Placeholder for updating dot positions
