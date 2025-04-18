@@ -2,15 +2,19 @@
 // Define the structure for an option expected in the prop
 interface Option {
   letters: string;
-  id: string | number;
+  id: string; // Ensure ID is string as used in store
+  isCorrect: boolean; // Include correctness info if needed, though store handles logic
 }
 
 defineProps<{
   options: Option[];
+  // Feedback state passed down from GameContainer
+  feedbackOptionId: string | null;
+  lastSelectionCorrect: boolean | null;
+  isFeedbackActive: boolean;
 }>();
 
-// Emits will be handled in Phase 4
-// const emit = defineEmits(['selectOption']);
+const emit = defineEmits(['selectOption']);
 </script>
 
 <template>
@@ -22,7 +26,9 @@ defineProps<{
         :key="option.id"
         :letters="option.letters"
         :id="option.id"
-        @select="$emit('selectOption', $event)"
+        :is-selected-and-active="isFeedbackActive && feedbackOptionId === option.id"
+        :is-correct-feedback="lastSelectionCorrect === true"
+        @select="emit('selectOption', $event)"
       />
     </div>
     <!-- Background dots will be added later -->

@@ -15,7 +15,10 @@ const {
   score,
   currentRound,
   gameState,
-  // warmupRoundsLeft // Example getter if needed for display
+  // Feedback state refs
+  feedbackOptionId,
+  lastSelectionCorrect,
+  isFeedbackActive,
 } = storeToRefs(gameStore);
 
 // Actions can be destructured directly
@@ -78,6 +81,9 @@ function handleTogglePause() {
         <TargetDisplay :target-letters="currentTarget" />
         <OptionsArea
           :options="currentOptions"
+          :feedback-option-id="feedbackOptionId"
+          :last-selection-correct="lastSelectionCorrect"
+          :is-feedback-active="isFeedbackActive"
           @select-option="handleOptionSelected"
         />
       </template>

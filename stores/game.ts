@@ -52,9 +52,13 @@ interface GameState {
   currentOptions: Option[];
   score: number;
   currentRound: number;
-  warmupRoundsTotal: number; // Example value, adjust as needed
+  warmupRoundsTotal: number;
   warmupRoundsCompleted: number;
-  dotPositions: DotPosition[]; // Placeholder for background dots
+  dotPositions: DotPosition[];
+  // Feedback state
+  feedbackOptionId: string | null; // ID of the option just selected
+  lastSelectionCorrect: boolean | null; // Was the last selection correct?
+  isFeedbackActive: boolean; // Controls if feedback styling is shown
 }
 
 export const useGameStore = defineStore('game', {
@@ -64,12 +68,22 @@ export const useGameStore = defineStore('game', {
     currentOptions: [],
     score: 0,
     currentRound: 0,
-    warmupRoundsTotal: 3, // Example initial value
+    warmupRoundsTotal: 3,
     warmupRoundsCompleted: 0,
-    dotPositions: [], // Initialize as empty
+    dotPositions: [],
+    // Initialize feedback state
+    feedbackOptionId: null,
+    lastSelectionCorrect: null,
+    isFeedbackActive: false,
   }),
 
   actions: {
+    // Helper to reset feedback state
+    resetFeedback() {
+      this.isFeedbackActive = false;
+      this.feedbackOptionId = null;
+      this.lastSelectionCorrect = null;
+    },
     // Placeholder for startGame action
     startGame() {
       console.log('Starting game...');
@@ -91,10 +105,13 @@ export const useGameStore = defineStore('game', {
 
     // Generates a new target and options for the next round
     generateNewRound() {
-      if (this.gameState === 'gameOver') return; // Don't generate if game over
+      if (this.gameState === 'gameOver') return;
+
+      // Reset feedback immediately when generating a new round
+      this.resetFeedback();
 
       console.log('Generating new round...');
-      const targetLength = 2; // As per blueprint
+      const targetLength = 2;
       const numberOfOptions = 5; // Example: 1 correct + 4 distractors
 
       // Generate the target letters
@@ -150,16 +167,43 @@ export const useGameStore = defineStore('game', {
       }
     },
 
-    // Placeholder for selectOption action
+    // Handles the user selecting an option
     selectOption(optionId: string) {
+      // Ignore selection if feedback is currently active or game not playing/warmup
+      if (this.isFeedbackActive || (this.gameState !== 'playing' && this.gameState !== 'warmup')) {
+        return;
+      }
+
       console.log(`Option selected: ${optionId}`);
-      // TODO: Implement option selection logic (Phase 4)
-      const selected = this.currentOptions.find(opt => opt.id === optionId);
-      if (selected?.isCorrect) {
-        this.score += 10; // Example scoring
-        // this.generateNewRound(); // Trigger next round
+      const selectedOption = this.currentOptions.find(opt => opt.id === optionId);
+
+      if (!selectedOption) return; // Should not happen
+
+      const isCorrect = selectedOption.isCorrect;
+
+      // Set feedback state
+      this.feedbackOptionId = optionId;
+      this.lastSelectionCorrect = isCorrect;
+      this.isFeedbackActive = true; // Show feedback styling
+
+      if (isCorrect) {
+        console.log('Correct selection!');
+        // Only increment score if in the actual 'playing' state
+        if (this.gameState === 'playing') {
+          this.score += 10; // Example scoring
+        }
+        // Proceed to the next round after a delay
+        setTimeout(() => {
+          this.generateNewRound();
+          // Feedback is reset by generateNewRound
+        }, 500); // 500ms delay for feedback visibility
       } else {
-        // Handle incorrect selection
+        console.log('Incorrect selection.');
+        // Handle incorrect selection (e.g., just show feedback)
+        // Reset feedback after a delay, but don't advance round
+        setTimeout(() => {
+          this.resetFeedback();
+        }, 500); // 500ms delay for feedback visibility
       }
     },
 
