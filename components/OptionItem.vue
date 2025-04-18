@@ -41,9 +41,9 @@ function handleClick() {
       feedbackClasses // Apply computed classes
     ]"
     :style="{
-       top: props.topStyle,
-       left: props.leftStyle,
-       transform: 'translate(-50%, -50%)' // Center the item on its top/left point
+      top: props.topStyle,
+      left: props.leftStyle,
+      transform: 'translate(-50%, -50%)' // Center the item on its top/left point
     }"
     @click="handleClick"
     :disabled="isSelectedAndActive"
@@ -55,14 +55,16 @@ function handleClick() {
 <style scoped>
 /* Simple shake animation for incorrect feedback */
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
-}
-.animate-shake {
-  animation: shake 0.3s ease-in-out;
+  0%, 100% { transform: translate(-50%, -50%) translateX(0); }
+  20% { transform: translate(-50%, -50%) translateX(-8px); }
+  40% { transform: translate(-50%, -50%) translateX(8px); }
+  60% { transform: translate(-50%, -50%) translateX(-6px); }
+  80% { transform: translate(-50%, -50%) translateX(6px); }
 }
 
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
 /* Add transition for smooth movement */
 .option-item {
   /* Ensure transform is also transitioned if needed, though top/left are primary */

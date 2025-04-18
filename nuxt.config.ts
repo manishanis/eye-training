@@ -11,7 +11,7 @@ export default defineNuxtConfig({
     // Public values are exposed client-side
     public: {
       optionCount: 10, // Set the desired number of options (1 correct + n distractors)
-      optionMoveIntervalSeconds: 20 // Interval for moving an option (in seconds)
+      optionMoveIntervalSeconds: 2 // Interval for moving an option (in seconds)
     }
   }
 })
