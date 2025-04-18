@@ -25,3 +25,9 @@ logs
 
 # AI Prompts
 .aider*
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

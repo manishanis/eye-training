@@ -92,7 +92,7 @@ function handleTogglePause() {
       </template>
       <!-- Placeholder for other states like idle, gameOver -->
       <div v-else-if="gameState === 'idle'" class="text-center text-xl">
-        Loading game...
+        <button id="start-game" @click="startWarmup">Start Game</button>
       </div>
       <div v-else-if="gameState === 'gameOver'" class="text-center text-xl">
         Game Over! Final Score: {{ score }}

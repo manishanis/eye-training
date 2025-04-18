@@ -1,5 +1,15 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  // head title
+  app: {
+    head: {
+      title: 'Game Title',
+      meta: [
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { name: 'description', content: 'Game Description' },
+      ],
+    },
+  },
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
   modules: [
