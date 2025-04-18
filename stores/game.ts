@@ -34,8 +34,11 @@ function shuffleArray<T>(array: T[]): void {
 // Define the structure for an option item
 interface Option {
   letters: string;
-  id: string; // Use string for ID to accommodate potential future needs
+  id: string;
   isCorrect: boolean;
+  // Position on the grid
+  gridRow: number;
+  gridCol: number;
 }
 
 // Define the structure for a dot position
@@ -59,7 +62,12 @@ interface GameState {
   feedbackOptionId: string | null;
   lastSelectionCorrect: boolean | null;
   isFeedbackActive: boolean;
-  stateBeforePause: 'warmup' | 'playing' | null; // Track state before pausing
+  stateBeforePause: 'warmup' | 'playing' | null;
+  // Option positioning state
+  optionsGridRows: number;
+  optionsGridCols: number;
+  occupiedCells: Set<string>; // Stores "row-col" strings
+  optionMoveTimerId: ReturnType<typeof setInterval> | null; // Timer ID for moving options
 }
 
 export const useGameStore = defineStore('game', {
@@ -77,6 +85,11 @@ export const useGameStore = defineStore('game', {
     lastSelectionCorrect: null,
     isFeedbackActive: false,
     stateBeforePause: null,
+    // Initialize positioning state
+    optionsGridRows: 3, // Example grid size, adjust as needed
+    optionsGridCols: 4, // Example grid size, adjust as needed (ensure rows*cols >= optionCount)
+    occupiedCells: new Set<string>(),
+    optionMoveTimerId: null,
   }),
 
   actions: {
@@ -86,26 +99,111 @@ export const useGameStore = defineStore('game', {
       this.feedbackOptionId = null;
       this.lastSelectionCorrect = null;
     },
-    // Placeholder for startGame action
+
+    // --- Option Movement Timer ---
+    clearOptionMoveTimer() {
+      if (this.optionMoveTimerId !== null) {
+        clearInterval(this.optionMoveTimerId);
+        this.optionMoveTimerId = null;
+        console.log('Option move timer cleared.');
+      }
+    },
+
+    startOptionMoveTimer() {
+      // Clear any existing timer first
+      this.clearOptionMoveTimer();
+
+      // Access runtime config inside the action where it's needed
+      const config = useRuntimeConfig();
+      const intervalSeconds = config.public.optionMoveIntervalSeconds as number;
+
+      if (intervalSeconds <= 0) {
+          console.warn(`Invalid optionMoveIntervalSeconds: ${intervalSeconds}. Timer not started.`);
+          return; // Don't start if interval is invalid
+      }
+
+      console.log(`Starting option move timer (${intervalSeconds}s interval)`);
+      this.optionMoveTimerId = setInterval(() => {
+        this.moveRandomOption();
+      }, intervalSeconds * 1000); // Convert seconds to milliseconds
+    },
+
+    // --- Move Logic ---
+    moveRandomOption() {
+        // Ensure game is in a state where options should move
+        if (this.currentOptions.length === 0 || this.gameState === 'paused' || this.gameState === 'gameOver' || this.gameState === 'idle') {
+            // console.log('Skipping moveRandomOption (no options or game not active/paused/over).');
+            return;
+        }
+
+        // Find available empty cells
+        const emptyCells: { row: number; col: number }[] = [];
+        for (let r = 0; r < this.optionsGridRows; r++) {
+            for (let c = 0; c < this.optionsGridCols; c++) {
+                if (!this.occupiedCells.has(`${r}-${c}`)) {
+                    emptyCells.push({ row: r, col: c });
+                }
+            }
+        }
+
+        if (emptyCells.length === 0) {
+            // console.log('No empty cells available to move option.');
+            return; // Cannot move if no empty space
+        }
+
+        // Select a random option to move
+        const optionIndexToMove = Math.floor(Math.random() * this.currentOptions.length);
+        // Ensure the option exists at the index before accessing properties
+        if (!this.currentOptions[optionIndexToMove]) {
+            console.error(`Option not found at index ${optionIndexToMove}`);
+            return;
+        }
+        const optionToMove = this.currentOptions[optionIndexToMove];
+
+
+        // Select a random empty cell
+        const targetCellIndex = Math.floor(Math.random() * emptyCells.length);
+        const targetCell = emptyCells[targetCellIndex];
+
+        console.log(`Moving option ${optionToMove.id} (${optionToMove.letters}) from ${optionToMove.gridRow}-${optionToMove.gridCol} to ${targetCell.row}-${targetCell.col}`);
+
+        // Update occupied cells
+        const oldPositionKey = `${optionToMove.gridRow}-${optionToMove.gridCol}`;
+        const newPositionKey = `${targetCell.row}-${targetCell.col}`;
+        this.occupiedCells.delete(oldPositionKey);
+        this.occupiedCells.add(newPositionKey);
+
+        // Update the option's position directly in the state array
+        // Vue's reactivity should detect the change within the array element's properties.
+        this.currentOptions[optionIndexToMove].gridRow = targetCell.row;
+        this.currentOptions[optionIndexToMove].gridCol = targetCell.col;
+
+        // Force reactivity update if direct property modification isn't detected (less common now)
+        // this.currentOptions = [...this.currentOptions];
+    },
+
+
+    // --- Game Lifecycle Actions ---
+    // Placeholder for startGame action // <-- Keep original comment for context
     startGame() {
       console.log('Starting game...');
       this.gameState = 'playing';
       this.score = 0;
-      this.currentRound = 0; // Reset round counter for the actual game
+      this.currentRound = 0;
       this.generateNewRound();
+      this.startOptionMoveTimer(); // Start timer when game starts
     },
 
-    // Placeholder for startWarmup action
     startWarmup() {
       console.log('Starting warmup...');
+      this.clearOptionMoveTimer(); // Ensure no old timer running
       this.gameState = 'warmup';
       this.score = 0; // Score doesn't count in warmup
-      this.currentRound = 0; // Use round counter for warmup rounds
+      this.currentRound = 0;
       this.warmupRoundsCompleted = 0;
       this.generateNewRound();
+      this.startOptionMoveTimer(); // Start timer when warmup starts
     },
-
-    // Generates a new target and options for the next round
     generateNewRound() {
       if (this.gameState === 'gameOver') return;
 
@@ -152,11 +250,51 @@ export const useGameStore = defineStore('game', {
         });
       });
 
-      // Shuffle the options
-      shuffleArray(newOptions);
+      // Assign grid positions before shuffling (or after, doesn't strictly matter here)
+      this.occupiedCells.clear();
+      const assignedOptions: Option[] = [];
+      let currentGridRow = 0;
+      let currentGridCol = 0;
+
+      for (const option of newOptions) {
+          // Find the next available cell
+          while (this.occupiedCells.has(`${currentGridRow}-${currentGridCol}`)) {
+              currentGridCol++;
+              if (currentGridCol >= this.optionsGridCols) {
+                  currentGridCol = 0;
+                  currentGridRow++;
+                  // Basic check to prevent infinite loop if grid is too small
+                  if (currentGridRow >= this.optionsGridRows) {
+                      console.error("Options grid is too small for the number of options!");
+                      // Handle error appropriately - maybe resize grid or throw error
+                      break;
+                  }
+              }
+          }
+
+          if (currentGridRow < this.optionsGridRows) { // Check if a spot was found
+              const positionKey = `${currentGridRow}-${currentGridCol}`;
+              this.occupiedCells.add(positionKey);
+              assignedOptions.push({
+                  ...option,
+                  gridRow: currentGridRow,
+                  gridCol: currentGridCol,
+              });
+          } else {
+             // Handle the case where no spot was found for an option
+             console.error(`Could not assign position for option ${option.id}`);
+          }
+      }
+
+
+      // Shuffle the options *after* assigning positions if needed,
+      // though shuffling might not be necessary if initial placement is grid-based.
+      // Let's keep the shuffle for now.
+      shuffleArray(assignedOptions);
 
       // Update the store state
-      this.currentOptions = newOptions;
+      this.currentOptions = assignedOptions;
+
 
       // Handle round counting based on game state
       if (this.gameState === 'warmup') {
@@ -217,14 +355,12 @@ export const useGameStore = defineStore('game', {
     // Pauses the game
     pauseGame() {
       if (this.gameState === 'playing' || this.gameState === 'warmup') {
-        this.stateBeforePause = this.gameState; // Store the current state
+        this.stateBeforePause = this.gameState;
         this.gameState = 'paused';
+        this.clearOptionMoveTimer(); // Stop timer when paused
         console.log('Game paused');
-        // CSS animation pauses automatically via :is-paused prop change
       }
     },
-
-    // Resumes the game from a paused state
     resumeGame() {
       if (this.gameState !== 'paused') return;
 
@@ -236,12 +372,22 @@ export const useGameStore = defineStore('game', {
       } else {
         this.gameState = this.stateBeforePause; // Restore the correct state
       }
-      this.stateBeforePause = null; // Clear the stored state after restoring
+      this.stateBeforePause = null;
       console.log(`Game resumed to ${this.gameState}`);
-      // CSS animation resumes automatically via :is-paused prop change in components
+      this.startOptionMoveTimer(); // Restart timer when resumed
     },
 
-    // Placeholder for updating dot positions
+    // Action to stop the game and clean up timers
+    stopGame() {
+        console.log('Stopping game...');
+        this.gameState = 'gameOver'; // Or 'idle'
+        this.clearOptionMoveTimer();
+        // Reset other relevant state if needed
+        this.currentOptions = [];
+        this.currentTarget = '';
+    },
+
+    // Placeholder for updating dot positions (can likely be removed if not used)
     updateDotPositions() {
       console.log('Updating dot positions...');
       // TODO: Implement dot position logic (Phase 5)

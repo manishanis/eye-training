@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { onMounted } from 'vue';
-import { storeToRefs } from 'pinia';
-import { useGameStore } from '@/stores/game';
+import { onMounted } from "vue";
+import { storeToRefs } from "pinia";
+import { useGameStore } from "@/stores/game";
 
 // Nuxt 3 auto-imports components/
 
@@ -29,39 +29,37 @@ const {
   // startGame, // Can call directly if needed
   selectOption,
   pauseGame,
-  resumeGame
+  resumeGame,
 } = gameStore;
 // --- End Store Connection ---
-
 
 // Start the warmup phase when the component is mounted
 onMounted(() => {
   // Check if the game isn't already in a running state (e.g., due to HMR)
-  if (gameState.value === 'idle') {
-     startWarmup();
+  if (gameState.value === "idle") {
+    startWarmup();
   }
 });
 
 // Handler for option selection - calls the store action
 function handleOptionSelected(optionId: string) {
   // Prevent selection if paused or game over
-  if (gameState.value === 'paused' || gameState.value === 'gameOver') {
+  if (gameState.value === "paused" || gameState.value === "gameOver") {
     return;
   }
-  console.log('Option selected in GameContainer:', optionId);
+  console.log("Option selected in GameContainer:", optionId);
   selectOption(optionId); // Call the store action
 }
 
 // Handler for pause toggle - calls the appropriate store action
 function handleTogglePause() {
-    console.log('Toggle Pause clicked');
-    if (gameState.value === 'paused') {
-      resumeGame();
-    } else if (gameState.value === 'playing' || gameState.value === 'warmup') {
-      pauseGame();
-    }
+  console.log("Toggle Pause clicked");
+  if (gameState.value === "paused") {
+    resumeGame();
+  } else if (gameState.value === "playing" || gameState.value === "warmup") {
+    pauseGame();
+  }
 }
-
 </script>
 
 <template>
@@ -69,23 +67,26 @@ function handleTogglePause() {
     <!-- Header: Scoreboard -->
     <!-- Header: Scoreboard - Use reactive state from store -->
     <header class="mb-4 flex-shrink-0">
-      <ScoreBoard
-        :score="score"
-        :round="currentRound"
-        />
-        <!-- :warmupRoundsLeft="warmupRoundsLeft" -->
+      <ScoreBoard :score="score" :round="currentRound" />
+      <!-- :warmupRoundsLeft="warmupRoundsLeft" -->
     </header>
 
     <!-- Main Game Area - Use reactive state from store -->
     <main class="mb-4 flex-grow flex flex-col justify-center">
       <!-- Display Target/Options only when game is active -->
-      <template v-if="gameState === 'playing' || gameState === 'warmup' || gameState === 'paused'">
+      <template
+        v-if="
+          gameState === 'playing' ||
+          gameState === 'warmup' ||
+          gameState === 'paused'
+        "
+      >
         <TargetDisplay :target-letters="currentTarget" />
         <OptionsArea
           :options="currentOptions"
           :feedback-option-id="feedbackOptionId"
           :last-selection-correct="lastSelectionCorrect"
-          :is-feedback-active="isFeedbackActive || isPaused"  
+          :is-feedback-active="isFeedbackActive || isPaused"
           @select-option="handleOptionSelected"
         />
       </template>
@@ -93,7 +94,7 @@ function handleTogglePause() {
       <div v-else-if="gameState === 'idle'" class="text-center text-xl">
         Loading game...
       </div>
-       <div v-else-if="gameState === 'gameOver'" class="text-center text-xl">
+      <div v-else-if="gameState === 'gameOver'" class="text-center text-xl">
         Game Over! Final Score: {{ score }}
         <!-- TODO: Add restart button -->
       </div>
@@ -101,10 +102,7 @@ function handleTogglePause() {
 
     <!-- Footer: Controls - Pass isPaused state -->
     <footer class="flex justify-center py-4 flex-shrink-0">
-      <PauseButton
-        :is-paused="isPaused"
-        @toggle-pause="handleTogglePause"
-      />
+      <PauseButton :is-paused="isPaused" @toggle-pause="handleTogglePause" />
     </footer>
   </div>
 </template>

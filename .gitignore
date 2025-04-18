@@ -22,4 +22,6 @@ logs
 .env
 .env.*
 !.env.example
+
+# AI Prompts
 .aider*
