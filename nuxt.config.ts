@@ -5,5 +5,12 @@ export default defineNuxtConfig({
   modules: [
     '@pinia/nuxt',
     '@nuxtjs/tailwindcss',
-  ]
+  ],
+  // Runtime config allows passing variables to the Vue app
+  runtimeConfig: {
+    // Public values are exposed client-side
+    public: {
+      optionCount: 10 // Set the desired number of options (1 correct + n distractors)
+    }
+  }
 })

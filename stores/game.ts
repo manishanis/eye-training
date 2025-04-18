@@ -114,7 +114,12 @@ export const useGameStore = defineStore('game', {
 
       console.log('Generating new round...');
       const targetLength = 2;
-      const numberOfOptions = 5; // Example: 1 correct + 4 distractors
+      // Access runtime config within the action
+      // Note: Accessing runtimeConfig directly might be tricky in store setup phase.
+      // A common pattern is to pass config when initializing or calling actions,
+      // but let's try accessing it directly here first. If it fails, we'll adjust.
+      const config = useRuntimeConfig(); // Get runtime config
+      const numberOfOptions = config.public.optionCount as number; // Use configured value
 
       // Generate the target letters
       this.currentTarget = generateRandomLetters(targetLength);

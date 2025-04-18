@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useRuntimeConfig } from '#app'; // Import Nuxt composable
 
 const props = defineProps<{
-  dotCount?: number;
+  // dotCount prop is no longer needed as we use runtime config
   isPaused: boolean;
 }>();
 
@@ -16,14 +17,15 @@ interface Dot {
 }
 
 const dots = ref<Dot[]>([]);
-const defaultDotCount = 20; // Adjust as needed
+const hardcodedDotCount = 20; // Define the number of dots directly
 
 onMounted(() => {
   generateDots();
 });
 
 function generateDots() {
-  const count = props.dotCount ?? defaultDotCount;
+  // Use the hardcoded dot count
+  const count = hardcodedDotCount;
   const newDots: Dot[] = [];
   for (let i = 0; i < count; i++) {
     newDots.push({
