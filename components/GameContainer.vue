@@ -31,6 +31,7 @@ const {
   selectOption,
   pauseGame,
   resumeGame,
+  restartGame, // Add restartGame action
 } = gameStore;
 // --- End Store Connection ---
 
@@ -58,6 +59,12 @@ function handleTogglePause() {
   } else if (gameState.value === "playing" || gameState.value === "warmup") {
     pauseGame();
   }
+}
+
+// Handler for restarting the game - calls the store action
+function handleRestartGame() {
+  console.log("Restart Game requested from GameContainer");
+  restartGame(); // Call the store action
 }
 </script>
 

@@ -395,6 +395,25 @@ export const useGameStore = defineStore('game', {
         // Reset other relevant state if needed
         this.currentOptions = [];
         this.currentTarget = '';
+        // Reset feedback state as well
+        this.resetFeedback();
+    },
+
+    // Action to restart the game
+    restartGame() {
+        console.log('Restarting game...');
+        this.clearOptionMoveTimer(); // Ensure timer is stopped
+        this.gameState = 'idle';
+        this.score = 0;
+        this.currentRound = 0;
+        this.warmupRoundsCompleted = 0;
+        this.currentTarget = '';
+        this.currentOptions = [];
+        this.occupiedCells.clear();
+        this.resetFeedback(); // Reset feedback state
+        this.stateBeforePause = null;
+        // No need to call generateNewRound or startWarmup here,
+        // the user will click "Start Game" again from the idle state.
     },
 
     // Placeholder for updating dot positions (can likely be removed if not used)

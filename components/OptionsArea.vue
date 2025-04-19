@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useGameStore } from "@/stores/game"; // Import store
-// import BackgroundDots from "./BackgroundDots.vue";
 
 // Define the structure for an option expected in the prop, including position
 interface OptionWithPosition {
@@ -57,11 +56,6 @@ const calculatePosition = (row: number, col: number) => {
   <div
     class="options-area bg-orange-900/30 p-6 rounded-lg min-h-[500px] relative"
   >
-    <!-- Background Dots Layer -->
-    <!-- <BackgroundDots :is-paused="props.isFeedbackActive" /> -->
-    <!-- Pause dots during feedback -->
-    <!-- Container for Absolutely Positioned Option Items -->
-    <!-- Removed flex/wrap/justify/items/gap classes -->
     <OptionItem
       v-for="option in props.options"
       :key="option.id"
