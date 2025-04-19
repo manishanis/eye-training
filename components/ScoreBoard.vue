@@ -2,6 +2,7 @@
 defineProps<{
   score: number;
   round: number;
+  totalRounds: number; // Add total rounds prop
   // warmupRoundsLeft?: number; // Optional prop for warmup
 }>();
 </script>
@@ -9,7 +10,7 @@ defineProps<{
 <template>
   <div class="score-board flex justify-between items-center text-lg font-semibold text-gray-300 px-2">
     <span>Score: {{ score }}</span>
-    <span>Round: {{ round }}</span>
+    <span>Round: {{ round }} / {{ totalRounds }}</span>
     <!-- Optional Warmup display -->
     <!-- <span v-if="warmupRoundsLeft !== undefined">Warmup Left: {{ warmupRoundsLeft }}</span> -->
   </div>

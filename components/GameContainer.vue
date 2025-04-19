@@ -14,6 +14,7 @@ const {
   currentOptions,
   score,
   currentRound,
+  totalRounds, // Add totalRounds
   gameState,
   // Feedback state refs
   feedbackOptionId,
@@ -35,10 +36,8 @@ const {
 
 // Start the warmup phase when the component is mounted
 onMounted(() => {
-  // Check if the game isn't already in a running state (e.g., due to HMR)
-  if (gameState.value === "idle") {
-    startWarmup();
-  }
+  // Component is mounted, game state defaults to 'idle'
+  // The user will click the "Start Game" button to initiate the warmup
 });
 
 // Handler for option selection - calls the store action
@@ -67,7 +66,7 @@ function handleTogglePause() {
     <!-- Header: Scoreboard -->
     <!-- Header: Scoreboard - Use reactive state from store -->
     <header class="mb-4 flex-shrink-0">
-      <ScoreBoard :score="score" :round="currentRound" />
+      <ScoreBoard :score="score" :round="currentRound" :total-rounds="totalRounds" />
       <!-- :warmupRoundsLeft="warmupRoundsLeft" -->
     </header>
 
@@ -91,8 +90,14 @@ function handleTogglePause() {
         />
       </template>
       <!-- Placeholder for other states like idle, gameOver -->
-      <div v-else-if="gameState === 'idle'" class="text-center text-xl">
-        <button id="start-game" @click="startWarmup">Start Game</button>
+      <div v-else-if="gameState === 'idle'" class="text-center text-xl flex justify-center items-center h-full">
+        <button
+          id="start-game"
+          @click="startWarmup"
+          class="px-6 py-3 bg-green-500 text-white font-bold rounded-lg shadow-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-700 focus:ring-opacity-50 animate-pulse"
+        >
+          Start Game
+        </button>
       </div>
       <div v-else-if="gameState === 'gameOver'" class="text-center text-xl">
         Game Over! Final Score: {{ score }}

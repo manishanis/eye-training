@@ -55,6 +55,7 @@ interface GameState {
   currentOptions: Option[];
   score: number;
   currentRound: number;
+  totalRounds: number; // Add total rounds for the game
   warmupRoundsTotal: number;
   warmupRoundsCompleted: number;
   dotPositions: DotPosition[];
@@ -71,12 +72,16 @@ interface GameState {
 }
 
 export const useGameStore = defineStore('game', {
-  state: (): GameState => ({
-    gameState: 'idle',
-    currentTarget: '',
-    currentOptions: [],
-    score: 0,
-    currentRound: 0,
+  state: (): GameState => {
+    // Access runtime config during state initialization
+    const config = useRuntimeConfig();
+    return {
+      gameState: 'idle',
+      currentTarget: '',
+      currentOptions: [],
+      score: 0,
+      currentRound: 0,
+      totalRounds: config.public.totalRounds as number, // Initialize from config
     warmupRoundsTotal: 3,
     warmupRoundsCompleted: 0,
     dotPositions: [],
@@ -88,9 +93,10 @@ export const useGameStore = defineStore('game', {
     // Initialize positioning state
     optionsGridRows: 3, // Example grid size, adjust as needed
     optionsGridCols: 4, // Example grid size, adjust as needed (ensure rows*cols >= optionCount)
-    occupiedCells: new Set<string>(),
-    optionMoveTimerId: null,
-  }),
+      occupiedCells: new Set<string>(),
+      optionMoveTimerId: null,
+    };
+  },
 
   actions: {
     // Helper to reset feedback state
@@ -184,22 +190,12 @@ export const useGameStore = defineStore('game', {
 
 
     // --- Game Lifecycle Actions ---
-    // Placeholder for startGame action // <-- Keep original comment for context
-    startGame() {
-      console.log('Starting game...');
-      this.gameState = 'playing';
-      this.score = 0;
-      this.currentRound = 0;
-      this.generateNewRound();
-      this.startOptionMoveTimer(); // Start timer when game starts
-    },
-
-    startWarmup() {
-      console.log('Starting warmup...');
-      this.clearOptionMoveTimer(); // Ensure no old timer running
+    startWarmup() {                                                                                                               
+      console.log('Starting warmup...');                                                                                          
+      this.clearOptionMoveTimer(); // Ensure no old timer running                                                                 
       this.gameState = 'warmup';
       this.score = 0; // Score doesn't count in warmup
-      this.currentRound = 0;
+      this.currentRound = 0; // Reset round counter for warmup/start
       this.warmupRoundsCompleted = 0;
       this.generateNewRound();
       this.startOptionMoveTimer(); // Start timer when warmup starts
@@ -299,19 +295,24 @@ export const useGameStore = defineStore('game', {
       this.currentOptions = assignedOptions;
 
 
-      // Handle round counting based on game state
+      // Handle round counting and state transition
       if (this.gameState === 'warmup') {
         this.warmupRoundsCompleted++;
-        this.currentRound++; // Increment round display during warmup
+        // DO NOT increment this.currentRound during warmup
+        console.log(`Warmup round ${this.warmupRoundsCompleted}/${this.warmupRoundsTotal} completed.`);
         // Check if warmup is finished
         if (this.warmupRoundsCompleted >= this.warmupRoundsTotal) {
+          console.log('Warmup complete. Transitioning to playing state.');
           // Transition to actual game after warmup
-          // Maybe add a small delay or message here?
-          this.startGame(); // Start the actual game
-          return; // Exit early as startGame will call generateNewRound again
+          this.gameState = 'playing';
+          this.currentRound = 0; // Reset round counter before the first playing round
+          // Immediately generate the first playing round
+          this.generateNewRound();
+          return; // Exit early as we've called generateNewRound again
         }
       } else if (this.gameState === 'playing') {
-        this.currentRound++; // Increment round for the main game
+        this.currentRound++; // Increment round ONLY for the main game
+        console.log(`Playing round ${this.currentRound}/${this.totalRounds} generated.`);
       }
     },
 
@@ -340,11 +341,17 @@ export const useGameStore = defineStore('game', {
         if (this.gameState === 'playing') {
           this.score += 10; // Example scoring
         }
-        // Proceed to the next round after a delay
-        setTimeout(() => {
-          this.generateNewRound();
-          // Feedback is reset by generateNewRound
-        }, 500); // 500ms delay for feedback visibility
+        // Check if the game should end (only in 'playing' state)
+        if (this.gameState === 'playing' && this.currentRound >= this.totalRounds) {
+          console.log(`Game over: Reached round ${this.currentRound}/${this.totalRounds}`);
+          this.stopGame(); // End the game
+        } else {
+          // Proceed to the next round after a delay
+          setTimeout(() => {
+            this.generateNewRound();
+            // Feedback is reset by generateNewRound
+          }, 500); // 500ms delay for feedback visibility
+        }
       } else {
         console.log('Incorrect selection.');
         // Handle incorrect selection (e.g., just show feedback)

@@ -21,7 +21,8 @@ export default defineNuxtConfig({
     // Public values are exposed client-side
     public: {
       optionCount: 10, // Set the desired number of options (1 correct + n distractors)
-      optionMoveIntervalSeconds: 2 // Interval for moving an option (in seconds)
+      optionMoveIntervalSeconds: 2, // Interval for moving an option (in seconds)
+      totalRounds: 2 // Number of rounds before the game ends (default: 3)
     }
   }
 })

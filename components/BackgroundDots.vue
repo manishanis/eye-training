@@ -38,6 +38,7 @@ function generateDots() {
     });
   }
   dots.value = newDots;
+  console.log('dots generated:', dots.value);
 }
 </script>
 
