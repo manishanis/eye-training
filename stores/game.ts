@@ -64,14 +64,21 @@ interface DotPosition {
   id: number;
 }
 
+// Define the structure for game settings
+interface GameSettings {
+    totalRounds: number;
+    // Add other settings here later
+}
+
 // Define the structure for the game state
 interface GameState {
   gameState: 'idle' | 'warmup' | 'playing' | 'paused' | 'gameOver';
+  settings: GameSettings; // Add settings object
   currentTarget: string;
   currentOptions: Option[];
   score: number;
   currentRound: number;
-  totalRounds: number; // Add total rounds for the game
+  // totalRounds is now part of settings
   warmupRoundsTotal: number;
   warmupRoundsCompleted: number;
   dotPositions: DotPosition[];
@@ -95,24 +102,30 @@ export const useGameStore = defineStore('game', {
   state: (): GameState => {
     // Access runtime config during state initialization
     const config = useRuntimeConfig();
+    // Default settings
+    const defaultSettings: GameSettings = {
+        totalRounds: 5, // Default value, moved from nuxt.config
+    };
+
     return {
       gameState: 'idle',
+      settings: { ...defaultSettings }, // Initialize settings
       currentTarget: '',
       currentOptions: [],
       score: 0,
       currentRound: 0,
-      totalRounds: config.public.totalRounds as number, // Initialize from config
-    warmupRoundsTotal: 3,
-    warmupRoundsCompleted: 0,
-    dotPositions: [],
+      // totalRounds removed, use settings.totalRounds
+      warmupRoundsTotal: 3, // Keep warmup rounds for now, could move to settings later
+      warmupRoundsCompleted: 0,
+      dotPositions: [],
     // Initialize feedback state
     feedbackOptionId: null,
     lastSelectionCorrect: null,
     isFeedbackActive: false,
     stateBeforePause: null,
     // Initialize positioning state
-    optionsGridRows: 3, // Example grid size, adjust as needed
-    optionsGridCols: 4, // Example grid size, adjust as needed (ensure rows*cols >= optionCount)
+    optionsGridRows: 4, // Example grid size, adjust as needed
+    optionsGridCols: 5, // Example grid size, adjust as needed (ensure rows*cols >= optionCount)
       occupiedCells: new Set<string>(),
       optionMoveTimerId: null,
       // Initialize timing and results
@@ -357,7 +370,7 @@ export const useGameStore = defineStore('game', {
         }
       } else if (this.gameState === 'playing') {
         this.currentRound++; // Increment round ONLY for the main game
-        console.log(`Playing round ${this.currentRound}/${this.totalRounds} generated.`);
+        console.log(`Playing round ${this.currentRound}/${this.settings.totalRounds} generated.`);
       }
     },
 
@@ -437,8 +450,8 @@ export const useGameStore = defineStore('game', {
           this.score += 10; // Example scoring
         }
         // Check if the game should end (only in 'playing' state)
-        if (this.gameState === 'playing' && this.currentRound >= this.totalRounds) {
-          console.log(`Game over: Reached round ${this.currentRound}/${this.totalRounds}`);
+        if (this.gameState === 'playing' && this.currentRound >= this.settings.totalRounds) {
+          console.log(`Game over: Reached round ${this.currentRound}/${this.settings.totalRounds}`);
           this.stopGame(); // End the game
         } else {
           // Proceed to the next round after a delay
@@ -520,6 +533,13 @@ export const useGameStore = defineStore('game', {
         // the user will click "Start Game" again from the idle state.
     },
 
+    // Action to update game settings
+    updateSettings(newSettings: Partial<GameSettings>) {
+        console.log('Updating settings:', newSettings);
+        this.settings = { ...this.settings, ...newSettings };
+        // Persist settings to localStorage or backend if needed here
+    },
+
     // Placeholder for updating dot positions (can likely be removed if not used)
     updateDotPositions() {
       console.log('Updating dot positions...');
@@ -539,5 +559,7 @@ export const useGameStore = defineStore('game', {
     getRoundResults: (state): RoundResult[] => state.roundResults,
     // Getter for all click history
     getClickHistory: (state): ClickRecord[] => state.clickHistory,
+    // Getter for settings
+    getSettings: (state): GameSettings => state.settings,
   },
 });

@@ -1,14 +1,8 @@
 <template>
   <div>
-    <!-- Render the main game component -->
-    <GameContainer />
+    <slot />
   </div>
 </template>
-
-<script setup lang="ts">
-// Nuxt 3 auto-imports components from the components/ directory
-// No explicit import needed here for GameContainer
-</script>
 
 <style>
 /* Global styles */

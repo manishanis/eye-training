@@ -14,7 +14,7 @@ const {
   currentOptions,
   score,
   currentRound,
-  totalRounds, // Add totalRounds
+  // totalRounds is now in settings
   gameState,
   // Feedback state refs
   feedbackOptionId,
@@ -24,6 +24,7 @@ const {
   isPaused,
   getRoundResults, // Getter for successful round results
   getClickHistory, // Getter for all click attempts
+  getSettings, // Getter for settings
 } = storeToRefs(gameStore);
 
 // Actions can be destructured directly
@@ -72,11 +73,19 @@ function handleRestartGame() {
 
 <template>
   <div class="game-container p-4 max-w-2xl mx-auto min-h-screen flex flex-col">
-    <!-- Header: Scoreboard -->
-    <!-- Header: Scoreboard - Use reactive state from store -->
-    <header class="mb-4 flex-shrink-0">
-      <ScoreBoard :score="score" :round="currentRound" :total-rounds="totalRounds" />
-      <!-- :warmupRoundsLeft="warmupRoundsLeft" -->
+    <!-- Header: Scoreboard & Settings Link -->
+    <header class="mb-4 flex-shrink-0 flex justify-between items-center">
+      <!-- ScoreBoard now uses totalRounds from settings -->
+      <ScoreBoard :score="score" :round="currentRound" :total-rounds="getSettings.totalRounds" />
+      <!-- Settings Link/Button - Show only when not actively playing -->
+      <NuxtLink
+        v-if="gameState !== 'playing' && gameState !== 'warmup'"
+        to="/settings"
+        class="text-sm text-gray-400 hover:text-gray-200 border border-gray-600 px-3 py-1 rounded hover:border-gray-500 transition-colors"
+        title="Game Settings"
+      >
+        ⚙️ Settings
+      </NuxtLink>
     </header>
 
     <!-- Main Game Area - Use reactive state from store -->
@@ -120,9 +129,10 @@ function handleRestartGame() {
       </div>
     </main>
 
-    <!-- Footer: Controls - Pass isPaused state -->
+    <!-- Footer: Controls -->
     <footer class="flex justify-center py-4 flex-shrink-0">
-      <PauseButton :is-paused="isPaused" @toggle-pause="handleTogglePause" />
+      <!-- <PauseButton :is-paused="isPaused" @toggle-pause="handleTogglePause" /> -->
+      <!-- Settings button moved to header -->
     </footer>
   </div>
 </template>
