@@ -78,14 +78,6 @@ function handleRestartGame() {
       <!-- ScoreBoard now uses totalRounds from settings -->
       <ScoreBoard :score="score" :round="currentRound" :total-rounds="getSettings.totalRounds" />
       <!-- Settings Link/Button - Show only when not actively playing -->
-      <NuxtLink
-        v-if="gameState !== 'playing' && gameState !== 'warmup'"
-        to="/settings"
-        class="text-sm text-gray-400 hover:text-gray-200 border border-gray-600 px-3 py-1 rounded hover:border-gray-500 transition-colors"
-        title="Game Settings"
-      >
-        ⚙️ Settings
-      </NuxtLink>
     </header>
 
     <!-- Main Game Area - Use reactive state from store -->
@@ -133,6 +125,14 @@ function handleRestartGame() {
     <footer class="flex justify-center py-4 flex-shrink-0">
       <!-- <PauseButton :is-paused="isPaused" @toggle-pause="handleTogglePause" /> -->
       <!-- Settings button moved to header -->
+      <NuxtLink
+        v-if="gameState !== 'playing' && gameState !== 'warmup'"
+        to="/settings"
+        class="text-sm text-gray-400 hover:text-gray-200 border border-gray-600 px-3 py-1 rounded hover:border-gray-500 transition-colors"
+        title="Game Settings"
+      >
+        ⚙️ Settings
+      </NuxtLink>
     </footer>
   </div>
 </template>
