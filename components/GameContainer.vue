@@ -22,6 +22,8 @@ const {
   isFeedbackActive,
   // Getters can also be refs via storeToRefs
   isPaused,
+  getRoundResults, // Getter for successful round results
+  getClickHistory, // Getter for all click attempts
 } = storeToRefs(gameStore);
 
 // Actions can be destructured directly
@@ -111,6 +113,8 @@ function handleRestartGame() {
         <GameOver
           :score="score"
           :round="currentRound"
+          :round-results="getRoundResults"
+          :click-history="getClickHistory"
           @restart="handleRestartGame"
         />
       </div>

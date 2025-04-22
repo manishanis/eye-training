@@ -28,8 +28,7 @@ function shuffleArray<T>(array: T[]): void {
   }
 }
 
-
-// --- Store Definition ---
+// --- Interfaces ---
 
 // Define the structure for an option item
 interface Option {
@@ -39,6 +38,23 @@ interface Option {
   // Position on the grid
   gridRow: number;
   gridCol: number;
+}
+
+// Define the structure for the result of a single round
+export interface RoundResult {
+  round: number;
+  target: string;
+  selected: string;
+  isCorrect: boolean;
+  timeMs: number; // Time taken in milliseconds for the *correct* selection
+}
+
+// Define the structure for a single click record
+interface ClickRecord {
+    roundLabel: string; // e.g., "W1", "W2", "1", "2"
+    clickedLetters: string;
+    isCorrect: boolean; // Was this click the correct option?
+    timeMs: number; // Time since round start for this specific click
 }
 
 // Define the structure for a dot position
@@ -69,6 +85,10 @@ interface GameState {
   optionsGridCols: number;
   occupiedCells: Set<string>; // Stores "row-col" strings
   optionMoveTimerId: ReturnType<typeof setInterval> | null; // Timer ID for moving options
+  // Timing and results state
+  roundStartTime: number; // Timestamp when the current round started
+  roundResults: RoundResult[]; // Array to store results of each *successful* round
+  clickHistory: ClickRecord[]; // Array to store every click attempt
 }
 
 export const useGameStore = defineStore('game', {
@@ -95,6 +115,10 @@ export const useGameStore = defineStore('game', {
     optionsGridCols: 4, // Example grid size, adjust as needed (ensure rows*cols >= optionCount)
       occupiedCells: new Set<string>(),
       optionMoveTimerId: null,
+      // Initialize timing and results
+      roundStartTime: 0,
+      roundResults: [], // Initialize the successful results array
+      clickHistory: [], // Initialize the click history array
     };
   },
 
@@ -190,15 +214,30 @@ export const useGameStore = defineStore('game', {
 
 
     // --- Game Lifecycle Actions ---
-    startWarmup() {                                                                                                               
-      console.log('Starting warmup...');                                                                                          
-      this.clearOptionMoveTimer(); // Ensure no old timer running                                                                 
-      this.gameState = 'warmup';
-      this.score = 0; // Score doesn't count in warmup
-      this.currentRound = 0; // Reset round counter for warmup/start
+    startWarmup() {
+      const config = useRuntimeConfig();
+      const warmupEnabled = config.public.enableWarmup as boolean;
+
+      console.log(`Starting game... Warmup enabled: ${warmupEnabled}`);
+      this.clearOptionMoveTimer(); // Ensure no old timer running
+      this.score = 0;
+      this.currentRound = 0;
       this.warmupRoundsCompleted = 0;
-      this.generateNewRound();
-      this.startOptionMoveTimer(); // Start timer when warmup starts
+      this.roundResults = []; // Clear previous results
+      this.clickHistory = []; // Clear previous history
+
+      if (warmupEnabled) {
+        console.log('Starting warmup phase...');
+        this.gameState = 'warmup';
+        this.generateNewRound();
+        this.startOptionMoveTimer(); // Start timer when warmup starts
+      } else {
+        console.log('Skipping warmup, starting playing phase directly...');
+        this.gameState = 'playing';
+        // currentRound is already 0, generateNewRound will increment it to 1
+        this.generateNewRound();
+        this.startOptionMoveTimer(); // Start timer when playing starts
+      }
     },
     generateNewRound() {
       if (this.gameState === 'gameOver') return;
@@ -294,6 +333,12 @@ export const useGameStore = defineStore('game', {
       // Update the store state
       this.currentOptions = assignedOptions;
 
+      // Record the start time for the new round if not game over
+      if (this.gameState !== 'gameOver') {
+          this.roundStartTime = performance.now();
+          console.log(`Round start time recorded: ${this.roundStartTime}`);
+      }
+
 
       // Handle round counting and state transition
       if (this.gameState === 'warmup') {
@@ -328,7 +373,57 @@ export const useGameStore = defineStore('game', {
 
       if (!selectedOption) return; // Should not happen
 
-      const isCorrect = selectedOption.isCorrect;
+      // --- Record Every Click ---
+      const timeTaken = performance.now() - this.roundStartTime;
+      const isCorrectClick = selectedOption.isCorrect; // Determine correctness early
+
+      // Determine the round label based on game state
+      let currentRoundLabel: string;
+      const config = useRuntimeConfig();
+      const warmupEnabled = config.public.enableWarmup as boolean;
+
+      if (warmupEnabled && this.gameState === 'warmup') {
+          // Warmup rounds are 1-based in the label (W1, W2, ...)
+          // warmupRoundsCompleted increments *after* the round starts, so add 1
+          currentRoundLabel = `W${this.warmupRoundsCompleted + 1}`;
+      } else {
+          // Playing rounds use the currentRound number directly
+          // Ensure currentRound is at least 1 if warmup is skipped
+          const roundNum = this.currentRound > 0 ? this.currentRound : 1;
+          currentRoundLabel = `${roundNum}`;
+      }
+
+      const clickData: ClickRecord = {
+          roundLabel: currentRoundLabel, // Store the calculated label
+          clickedLetters: selectedOption.letters,
+          isCorrect: isCorrectClick, // Add the correctness flag
+          timeMs: Math.round(timeTaken),
+      };
+      this.clickHistory.push(clickData);
+      console.log('Click Recorded:', clickData); // Log every click
+      // --- End Click Recording ---
+
+      // Ignore further processing if feedback is active or game not in active state
+      if (this.isFeedbackActive || (this.gameState !== 'playing' && this.gameState !== 'warmup')) {
+        return;
+      }
+
+      // --- Process Correct/Incorrect Selection ---
+      // We already determined correctness above for the click log
+      const isCorrect = isCorrectClick;
+
+      // Record the *successful* round result if in the 'playing' state and correct
+      if (this.gameState === 'playing' && isCorrect) {
+        const result: RoundResult = {
+          round: this.currentRound,
+          target: this.currentTarget,
+          selected: selectedOption.letters,
+          isCorrect: isCorrect,
+          timeMs: Math.round(timeTaken), // Store as integer milliseconds
+        };
+        this.roundResults.push(result);
+        console.log('Round result recorded:', result);
+      }
 
       // Set feedback state
       this.feedbackOptionId = optionId;
@@ -375,12 +470,18 @@ export const useGameStore = defineStore('game', {
       if (this.gameState !== 'paused') return;
 
       // Restore the game state from before pausing
-      if (!this.stateBeforePause) {
-        // Fallback if stateBeforePause wasn't set (shouldn't happen in normal flow)
-        console.warn('State before pause was not set. Falling back based on warmup completion.');
-        this.gameState = (this.warmupRoundsCompleted >= this.warmupRoundsTotal) ? 'playing' : 'warmup';
-      } else {
+      if (this.stateBeforePause) {
         this.gameState = this.stateBeforePause; // Restore the correct state
+      } else {
+        // Fallback if stateBeforePause wasn't set (shouldn't happen in normal flow)
+        console.warn('State before pause was not set. Falling back based on config and warmup completion.');
+        const config = useRuntimeConfig();
+        const warmupEnabled = config.public.enableWarmup as boolean;
+        if (warmupEnabled) {
+            this.gameState = (this.warmupRoundsCompleted >= this.warmupRoundsTotal) ? 'playing' : 'warmup';
+        } else {
+            this.gameState = 'playing'; // If warmup disabled, always resume to playing
+        }
       }
       this.stateBeforePause = null;
       console.log(`Game resumed to ${this.gameState}`);
@@ -412,6 +513,9 @@ export const useGameStore = defineStore('game', {
         this.occupiedCells.clear();
         this.resetFeedback(); // Reset feedback state
         this.stateBeforePause = null;
+        // Reset results and history
+        this.roundResults = [];
+        this.clickHistory = [];
         // No need to call generateNewRound or startWarmup here,
         // the user will click "Start Game" again from the idle state.
     },
@@ -431,5 +535,9 @@ export const useGameStore = defineStore('game', {
     // Simple display getters
     displayScore: (state): number => state.score,
     displayRound: (state): number => state.currentRound,
+    // Getter for successful round results
+    getRoundResults: (state): RoundResult[] => state.roundResults,
+    // Getter for all click history
+    getClickHistory: (state): ClickRecord[] => state.clickHistory,
   },
 });

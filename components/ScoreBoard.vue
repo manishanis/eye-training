@@ -9,7 +9,8 @@ defineProps<{
 
 <template>
   <div class="score-board flex justify-between items-center text-lg font-semibold text-gray-300 px-2">
-    <span>Score: {{ score }}</span>
+    <!-- <span>Score: {{ score }}</span> -->
+    <span></span>
     <span>Round: {{ round }} / {{ totalRounds }}</span>
     <!-- Optional Warmup display -->
     <!-- <span v-if="warmupRoundsLeft !== undefined">Warmup Left: {{ warmupRoundsLeft }}</span> -->
