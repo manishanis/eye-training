@@ -106,9 +106,13 @@ function handleRestartGame() {
           Start Game
         </button>
       </div>
-      <div v-else-if="gameState === 'gameOver'" class="text-center text-xl">
-        Game Over! Final Score: {{ score }}
-        <!-- TODO: Add restart button -->
+      <!-- Use GameOver component when game is over -->
+      <div v-else-if="gameState === 'gameOver'" class="flex justify-center items-center h-full">
+        <GameOver
+          :score="score"
+          :round="currentRound"
+          @restart="handleRestartGame"
+        />
       </div>
     </main>
 
