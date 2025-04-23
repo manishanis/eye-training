@@ -1,8 +1,9 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   ssr: true,
-  // head title
+  target: 'static',
   app: {
+    baseURL: '/eye-training/', // Important for GitHub Pages
     head: {
       title: 'Game Title',
       meta: [
@@ -26,5 +27,15 @@ export default defineNuxtConfig({
       // totalRounds removed - now managed in Pinia store
       enableWarmup: false // Set to false to disable warmup rounds (default: true)
     }
-  }
+  },
+  nitro: {
+    prerender: {
+      routes: ['/'], // Add other routes if needed
+      crawlLinks: true,
+      failOnError: false, // Important: Don't fail build on prerender error
+    }
+  },
+  generate: {
+    fallback: true,
+  },
 })
