@@ -51,10 +51,10 @@ export interface RoundResult {
 
 // Define the structure for a single click record
 interface ClickRecord {
-    roundLabel: string; // e.g., "W1", "W2", "1", "2"
-    clickedLetters: string;
-    isCorrect: boolean; // Was this click the correct option?
-    timeMs: number; // Time since round start for this specific click
+  roundLabel: string; // e.g., "W1", "W2", "1", "2"
+  clickedLetters: string;
+  isCorrect: boolean; // Was this click the correct option?
+  timeMs: number; // Time since round start for this specific click
 }
 
 // Define the structure for a dot position
@@ -66,12 +66,12 @@ interface DotPosition {
 
 // Define the structure for game settings
 interface GameSettings {
-    totalRounds: number;
-    optionsGridRows: number;
-    optionsGridCols: number;
-    optionCount: number; // Total number of options (1 correct + distractors)
-    optionMoveIntervalSeconds: number; // Interval for moving options
-    // Add other settings here later
+  totalRounds: number;
+  optionsGridRows: number;
+  optionsGridCols: number;
+  optionCount: number; // Total number of options (1 correct + distractors)
+  optionMoveIntervalSeconds: number; // Interval for moving options
+  // Add other settings here later
 }
 
 // Define the structure for the game state
@@ -108,11 +108,11 @@ export const useGameStore = defineStore('game', {
     // Note: Accessing runtimeConfig here can be unreliable. Use hardcoded defaults
     // or load from localStorage/API after store creation if needed.
     const defaultSettings: GameSettings = {
-        totalRounds: 5,
-        optionsGridRows: 4,
-        optionsGridCols: 5,
-        optionCount: 18,
-        optionMoveIntervalSeconds: 0.8, // Default value, previously from nuxt.config
+      totalRounds: 5,
+      optionsGridRows: 4,
+      optionsGridCols: 5,
+      optionCount: 18,
+      optionMoveIntervalSeconds: 0.8, // Default value, previously from nuxt.config
     };
 
     return {
@@ -126,12 +126,12 @@ export const useGameStore = defineStore('game', {
       warmupRoundsTotal: 3, // Keep warmup rounds for now, could move to settings later
       warmupRoundsCompleted: 0,
       dotPositions: [],
-    // Initialize feedback state
-    feedbackOptionId: null,
-    lastSelectionCorrect: null,
-    isFeedbackActive: false,
-    stateBeforePause: null,
-    // Initialize positioning state - rows/cols are in settings now
+      // Initialize feedback state
+      feedbackOptionId: null,
+      lastSelectionCorrect: null,
+      isFeedbackActive: false,
+      stateBeforePause: null,
+      // Initialize positioning state - rows/cols are in settings now
       occupiedCells: new Set<string>(),
       optionMoveTimerId: null,
       // Initialize timing and results
@@ -166,8 +166,8 @@ export const useGameStore = defineStore('game', {
       const intervalSeconds = this.settings.optionMoveIntervalSeconds;
 
       if (intervalSeconds <= 0) {
-          console.warn(`Invalid optionMoveIntervalSeconds in settings: ${intervalSeconds}. Timer not started.`);
-          return; // Don't start if interval is invalid
+        console.warn(`Invalid optionMoveIntervalSeconds in settings: ${intervalSeconds}. Timer not started.`);
+        return; // Don't start if interval is invalid
       }
 
       console.log(`Starting option move timer (${intervalSeconds}s interval)`);
@@ -178,56 +178,56 @@ export const useGameStore = defineStore('game', {
 
     // --- Move Logic ---
     moveRandomOption() {
-        // Ensure game is in a state where options should move
-        if (this.currentOptions.length === 0 || this.gameState === 'paused' || this.gameState === 'gameOver' || this.gameState === 'idle') {
-            // console.log('Skipping moveRandomOption (no options or game not active/paused/over).');
-            return;
+      // Ensure game is in a state where options should move
+      if (this.currentOptions.length === 0 || this.gameState === 'paused' || this.gameState === 'gameOver' || this.gameState === 'idle') {
+        // console.log('Skipping moveRandomOption (no options or game not active/paused/over).');
+        return;
+      }
+
+      // Find available empty cells
+      const emptyCells: { row: number; col: number }[] = [];
+      for (let r = 0; r < this.settings.optionsGridRows; r++) {
+        for (let c = 0; c < this.settings.optionsGridCols; c++) {
+          if (!this.occupiedCells.has(`${r}-${c}`)) {
+            emptyCells.push({ row: r, col: c });
+          }
         }
+      }
 
-        // Find available empty cells
-        const emptyCells: { row: number; col: number }[] = [];
-        for (let r = 0; r < this.settings.optionsGridRows; r++) {
-            for (let c = 0; c < this.settings.optionsGridCols; c++) {
-                if (!this.occupiedCells.has(`${r}-${c}`)) {
-                    emptyCells.push({ row: r, col: c });
-                }
-            }
-        }
+      if (emptyCells.length === 0) {
+        // console.log('No empty cells available to move option.');
+        return; // Cannot move if no empty space
+      }
 
-        if (emptyCells.length === 0) {
-            // console.log('No empty cells available to move option.');
-            return; // Cannot move if no empty space
-        }
-
-        // Select a random option to move
-        const optionIndexToMove = Math.floor(Math.random() * this.currentOptions.length);
-        // Ensure the option exists at the index before accessing properties
-        if (!this.currentOptions[optionIndexToMove]) {
-            console.error(`Option not found at index ${optionIndexToMove}`);
-            return;
-        }
-        const optionToMove = this.currentOptions[optionIndexToMove];
+      // Select a random option to move
+      const optionIndexToMove = Math.floor(Math.random() * this.currentOptions.length);
+      // Ensure the option exists at the index before accessing properties
+      if (!this.currentOptions[optionIndexToMove]) {
+        console.error(`Option not found at index ${optionIndexToMove}`);
+        return;
+      }
+      const optionToMove = this.currentOptions[optionIndexToMove];
 
 
-        // Select a random empty cell
-        const targetCellIndex = Math.floor(Math.random() * emptyCells.length);
-        const targetCell = emptyCells[targetCellIndex];
+      // Select a random empty cell
+      const targetCellIndex = Math.floor(Math.random() * emptyCells.length);
+      const targetCell = emptyCells[targetCellIndex];
 
-        console.log(`Moving option ${optionToMove.id} (${optionToMove.letters}) from ${optionToMove.gridRow}-${optionToMove.gridCol} to ${targetCell.row}-${targetCell.col}`);
+      console.log(`Moving option ${optionToMove.id} (${optionToMove.letters}) from ${optionToMove.gridRow}-${optionToMove.gridCol} to ${targetCell.row}-${targetCell.col}`);
 
-        // Update occupied cells
-        const oldPositionKey = `${optionToMove.gridRow}-${optionToMove.gridCol}`;
-        const newPositionKey = `${targetCell.row}-${targetCell.col}`;
-        this.occupiedCells.delete(oldPositionKey);
-        this.occupiedCells.add(newPositionKey);
+      // Update occupied cells
+      const oldPositionKey = `${optionToMove.gridRow}-${optionToMove.gridCol}`;
+      const newPositionKey = `${targetCell.row}-${targetCell.col}`;
+      this.occupiedCells.delete(oldPositionKey);
+      this.occupiedCells.add(newPositionKey);
 
-        // Update the option's position directly in the state array
-        // Vue's reactivity should detect the change within the array element's properties.
-        this.currentOptions[optionIndexToMove].gridRow = targetCell.row;
-        this.currentOptions[optionIndexToMove].gridCol = targetCell.col;
+      // Update the option's position directly in the state array
+      // Vue's reactivity should detect the change within the array element's properties.
+      this.currentOptions[optionIndexToMove].gridRow = targetCell.row;
+      this.currentOptions[optionIndexToMove].gridCol = targetCell.col;
 
-        // Force reactivity update if direct property modification isn't detected (less common now)
-        // this.currentOptions = [...this.currentOptions];
+      // Force reactivity update if direct property modification isn't detected (less common now)
+      // this.currentOptions = [...this.currentOptions];
     },
 
 
@@ -309,33 +309,33 @@ export const useGameStore = defineStore('game', {
       let currentGridCol = 0;
 
       for (const option of newOptions) {
-          // Find the next available cell
-          while (this.occupiedCells.has(`${currentGridRow}-${currentGridCol}`)) {
-              currentGridCol++;
-              if (currentGridCol >= this.settings.optionsGridCols) {
-                  currentGridCol = 0;
-                  currentGridRow++;
-                  // Basic check to prevent infinite loop if grid is too small
-                  if (currentGridRow >= this.settings.optionsGridRows) {
-                      console.error("Options grid is too small for the number of options! Check settings.");
-                      // Handle error appropriately - maybe resize grid or throw error
-                      break;
-                  }
-              }
+        // Find the next available cell
+        while (this.occupiedCells.has(`${currentGridRow}-${currentGridCol}`)) {
+          currentGridCol++;
+          if (currentGridCol >= this.settings.optionsGridCols) {
+            currentGridCol = 0;
+            currentGridRow++;
+            // Basic check to prevent infinite loop if grid is too small
+            if (currentGridRow >= this.settings.optionsGridRows) {
+              console.error("Options grid is too small for the number of options! Check settings.");
+              // Handle error appropriately - maybe resize grid or throw error
+              break;
+            }
           }
+        }
 
-          if (currentGridRow < this.settings.optionsGridRows) { // Check if a spot was found
-              const positionKey = `${currentGridRow}-${currentGridCol}`;
-              this.occupiedCells.add(positionKey);
-              assignedOptions.push({
-                  ...option,
-                  gridRow: currentGridRow,
-                  gridCol: currentGridCol,
-              });
-          } else {
-             // Handle the case where no spot was found for an option
-             console.error(`Could not assign position for option ${option.id}`);
-          }
+        if (currentGridRow < this.settings.optionsGridRows) { // Check if a spot was found
+          const positionKey = `${currentGridRow}-${currentGridCol}`;
+          this.occupiedCells.add(positionKey);
+          assignedOptions.push({
+            ...option,
+            gridRow: currentGridRow,
+            gridCol: currentGridCol,
+          });
+        } else {
+          // Handle the case where no spot was found for an option
+          console.error(`Could not assign position for option ${option.id}`);
+        }
       }
 
 
@@ -349,8 +349,8 @@ export const useGameStore = defineStore('game', {
 
       // Record the start time for the new round if not game over
       if (this.gameState !== 'gameOver') {
-          this.roundStartTime = performance.now();
-          console.log(`Round start time recorded: ${this.roundStartTime}`);
+        this.roundStartTime = performance.now();
+        console.log(`Round start time recorded: ${this.roundStartTime}`);
       }
 
 
@@ -397,21 +397,21 @@ export const useGameStore = defineStore('game', {
       const warmupEnabled = config.public.enableWarmup as boolean;
 
       if (warmupEnabled && this.gameState === 'warmup') {
-          // Warmup rounds are 1-based in the label (W1, W2, ...)
-          // warmupRoundsCompleted increments *after* the round starts, so add 1
-          currentRoundLabel = `W${this.warmupRoundsCompleted + 1}`;
+        // Warmup rounds are 1-based in the label (W1, W2, ...)
+        // warmupRoundsCompleted increments *after* the round starts, so add 1
+        currentRoundLabel = `W${this.warmupRoundsCompleted + 1}`;
       } else {
-          // Playing rounds use the currentRound number directly
-          // Ensure currentRound is at least 1 if warmup is skipped
-          const roundNum = this.currentRound > 0 ? this.currentRound : 1;
-          currentRoundLabel = `${roundNum}`;
+        // Playing rounds use the currentRound number directly
+        // Ensure currentRound is at least 1 if warmup is skipped
+        const roundNum = this.currentRound > 0 ? this.currentRound : 1;
+        currentRoundLabel = `${roundNum}`;
       }
 
       const clickData: ClickRecord = {
-          roundLabel: currentRoundLabel, // Store the calculated label
-          clickedLetters: selectedOption.letters,
-          isCorrect: isCorrectClick, // Add the correctness flag
-          timeMs: Math.round(timeTaken),
+        roundLabel: currentRoundLabel, // Store the calculated label
+        clickedLetters: selectedOption.letters,
+        isCorrect: isCorrectClick, // Add the correctness flag
+        timeMs: Math.round(timeTaken),
       };
       this.clickHistory.push(clickData);
       console.log('Click Recorded:', clickData); // Log every click
@@ -492,9 +492,9 @@ export const useGameStore = defineStore('game', {
         const config = useRuntimeConfig();
         const warmupEnabled = config.public.enableWarmup as boolean;
         if (warmupEnabled) {
-            this.gameState = (this.warmupRoundsCompleted >= this.warmupRoundsTotal) ? 'playing' : 'warmup';
+          this.gameState = (this.warmupRoundsCompleted >= this.warmupRoundsTotal) ? 'playing' : 'warmup';
         } else {
-            this.gameState = 'playing'; // If warmup disabled, always resume to playing
+          this.gameState = 'playing'; // If warmup disabled, always resume to playing
         }
       }
       this.stateBeforePause = null;
@@ -504,41 +504,41 @@ export const useGameStore = defineStore('game', {
 
     // Action to stop the game and clean up timers
     stopGame() {
-        console.log('Stopping game...');
-        this.gameState = 'gameOver'; // Or 'idle'
-        this.clearOptionMoveTimer();
-        // Reset other relevant state if needed
-        this.currentOptions = [];
-        this.currentTarget = '';
-        // Reset feedback state as well
-        this.resetFeedback();
+      console.log('Stopping game...');
+      this.gameState = 'gameOver'; // Or 'idle'
+      this.clearOptionMoveTimer();
+      // Reset other relevant state if needed
+      this.currentOptions = [];
+      this.currentTarget = '';
+      // Reset feedback state as well
+      this.resetFeedback();
     },
 
     // Action to restart the game
     restartGame() {
-        console.log('Restarting game...');
-        this.clearOptionMoveTimer(); // Ensure timer is stopped
-        this.gameState = 'idle';
-        this.score = 0;
-        this.currentRound = 0;
-        this.warmupRoundsCompleted = 0;
-        this.currentTarget = '';
-        this.currentOptions = [];
-        this.occupiedCells.clear();
-        this.resetFeedback(); // Reset feedback state
-        this.stateBeforePause = null;
-        // Reset results and history
-        this.roundResults = [];
-        this.clickHistory = [];
-        // No need to call generateNewRound or startWarmup here,
-        // the user will click "Start Game" again from the idle state.
+      console.log('Restarting game...');
+      this.clearOptionMoveTimer(); // Ensure timer is stopped
+      this.gameState = 'idle';
+      this.score = 0;
+      this.currentRound = 0;
+      this.warmupRoundsCompleted = 0;
+      this.currentTarget = '';
+      this.currentOptions = [];
+      this.occupiedCells.clear();
+      this.resetFeedback(); // Reset feedback state
+      this.stateBeforePause = null;
+      // Reset results and history
+      this.roundResults = [];
+      this.clickHistory = [];
+      // No need to call generateNewRound or startWarmup here,
+      // the user will click "Start Game" again from the idle state.
     },
 
     // Action to update game settings
     updateSettings(newSettings: Partial<GameSettings>) {
-        console.log('Updating settings:', newSettings);
-        this.settings = { ...this.settings, ...newSettings };
-        // Persist settings to localStorage or backend if needed here
+      console.log('Updating settings:', newSettings);
+      this.settings = { ...this.settings, ...newSettings };
+      // Persist settings to localStorage or backend if needed here
     },
 
     // Placeholder for updating dot positions (can likely be removed if not used)
@@ -562,5 +562,9 @@ export const useGameStore = defineStore('game', {
     getClickHistory: (state): ClickRecord[] => state.clickHistory,
     // Getter for settings
     getSettings: (state): GameSettings => state.settings,
+  },
+  persist: {
+    storage: piniaPluginPersistedstate.localStorage(),
+    pick: ['settings']
   },
 });

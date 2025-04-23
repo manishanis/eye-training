@@ -16,7 +16,11 @@ export default defineNuxtConfig({
   devtools: { enabled: false },
   modules: [
     '@pinia/nuxt',
+    'pinia-plugin-persistedstate/nuxt',
     '@nuxtjs/tailwindcss',
+  ],
+  plugins: [
+    '~/plugins/pinia.ts',
   ],
   // Runtime config allows passing variables to the Vue app
   runtimeConfig: {
