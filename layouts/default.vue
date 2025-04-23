@@ -1,5 +1,5 @@
 <template>
-  <div class="">
+  <div class="bg-gray-900 text-gray-200">
     <slot />
   </div>
 </template>
@@ -9,7 +9,5 @@
 body {
   margin: 0;
   font-family: sans-serif;
-  /* Apply dark theme background and default text color */
-  @apply bg-gray-900 text-gray-200;
 }
 </style>
