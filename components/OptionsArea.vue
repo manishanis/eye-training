@@ -54,7 +54,7 @@ const calculatePosition = (row: number, col: number) => {
 
 <template>
   <div
-    class="options-area bg-orange-900/30 p-6 rounded-lg min-h-[500px] relative"
+    class="options-area p-6 rounded-lg flex-grow relative"
   >
     <OptionItem
       v-for="option in props.options"

@@ -36,15 +36,14 @@ const averageSuccessTimeMs = computed(() => {
 <template>
   <div class="game-over-container text-center p-6 rounded-lg shadow-md bg-gray-800 text-gray-200 w-full max-w-2xl mx-auto">
     <h2 class="text-2xl font-bold mb-4 text-white">Game Over!</h2>
-    <!-- <p class="mb-2 text-gray-300">Final Score: {{ score }}</p> -->
-    <p class="mb-4 text-gray-300">Rounds Played: {{ round }}</p>
 
     <!-- Display Average Time for Successful Rounds -->
     <div class="mb-6">
       <!-- <h3 class="text-xl font-semibold mb-2 text-white">Performance Summary</h3> -->
         <p v-if="averageSuccessTimeMs > 0" class="text-lg text-gray-300">
-            Average Time (Successful Rounds):
-            <span class="font-bold text-white">{{ averageSuccessTimeMs }} ms</span>
+            Average Time:
+          <span class="font-bold text-white">{{ averageSuccessTimeMs }} ms</span>
+          <br/>
         </p>
         <p v-else class="text-gray-400">
             No successful rounds were recorded to calculate an average time.

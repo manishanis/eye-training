@@ -72,7 +72,7 @@ function handleRestartGame() {
 </script>
 
 <template>
-  <div class="game-container p-4 max-w-2xl mx-auto min-h-screen flex flex-col">
+  <div class="game-container p-4 mx-auto min-h-screen flex flex-col">
     <!-- Header: Scoreboard & Settings Link -->
     <header class="mb-4 flex-shrink-0 flex justify-between items-center">
       <!-- ScoreBoard now uses totalRounds from settings -->

@@ -28,14 +28,4 @@ export default defineNuxtConfig({
       enableWarmup: false // Set to false to disable warmup rounds (default: true)
     }
   },
-  // nitro: {
-  //   prerender: {
-  //     routes: ['/'], // Add other routes if needed
-  //     crawlLinks: true,
-  //     failOnError: false, // Important: Don't fail build on prerender error
-  //   }
-  // },
-  // generate: {
-  //   fallback: true,
-  // },
 })
