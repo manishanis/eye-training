@@ -21,16 +21,18 @@ const props = defineProps<{
   isFeedbackActive: boolean;
 }>();
 
-// Access store to get grid dimensions
+import { storeToRefs } from "pinia"; // Import storeToRefs
+
+// Access store to get grid dimensions from settings
 const gameStore = useGameStore();
-const gridRows = computed(() => gameStore.optionsGridRows);
-const gridCols = computed(() => gameStore.optionsGridCols);
+const { settings } = storeToRefs(gameStore); // Use storeToRefs for reactive access to settings
 
 // Calculate position styles based on grid data
 // Adding padding/offset to prevent items hitting the very edge
 const calculatePosition = (row: number, col: number) => {
-  const rowCount = gridRows.value <= 0 ? 1 : gridRows.value; // Avoid division by zero
-  const colCount = gridCols.value <= 0 ? 1 : gridCols.value;
+  // Access grid dimensions from the reactive settings ref
+  const rowCount = settings.value.optionsGridRows <= 0 ? 1 : settings.value.optionsGridRows; // Avoid division by zero
+  const colCount = settings.value.optionsGridCols <= 0 ? 1 : settings.value.optionsGridCols;
 
   // Calculate base percentage position
   let topPercent = (row / rowCount) * 100;

@@ -67,6 +67,10 @@ interface DotPosition {
 // Define the structure for game settings
 interface GameSettings {
     totalRounds: number;
+    optionsGridRows: number;
+    optionsGridCols: number;
+    optionCount: number; // Total number of options (1 correct + distractors)
+    optionMoveIntervalSeconds: number; // Interval for moving options
     // Add other settings here later
 }
 
@@ -87,9 +91,7 @@ interface GameState {
   lastSelectionCorrect: boolean | null;
   isFeedbackActive: boolean;
   stateBeforePause: 'warmup' | 'playing' | null;
-  // Option positioning state
-  optionsGridRows: number;
-  optionsGridCols: number;
+  // Option positioning state - rows/cols moved to settings
   occupiedCells: Set<string>; // Stores "row-col" strings
   optionMoveTimerId: ReturnType<typeof setInterval> | null; // Timer ID for moving options
   // Timing and results state
@@ -103,8 +105,14 @@ export const useGameStore = defineStore('game', {
     // Access runtime config during state initialization
     const config = useRuntimeConfig();
     // Default settings
+    // Note: Accessing runtimeConfig here can be unreliable. Use hardcoded defaults
+    // or load from localStorage/API after store creation if needed.
     const defaultSettings: GameSettings = {
-        totalRounds: 5, // Default value, moved from nuxt.config
+        totalRounds: 5,
+        optionsGridRows: 4,
+        optionsGridCols: 5,
+        optionCount: 18,
+        optionMoveIntervalSeconds: 0.8, // Default value, previously from nuxt.config
     };
 
     return {
@@ -123,9 +131,7 @@ export const useGameStore = defineStore('game', {
     lastSelectionCorrect: null,
     isFeedbackActive: false,
     stateBeforePause: null,
-    // Initialize positioning state
-    optionsGridRows: 4, // Example grid size, adjust as needed
-    optionsGridCols: 5, // Example grid size, adjust as needed (ensure rows*cols >= optionCount)
+    // Initialize positioning state - rows/cols are in settings now
       occupiedCells: new Set<string>(),
       optionMoveTimerId: null,
       // Initialize timing and results
@@ -156,12 +162,11 @@ export const useGameStore = defineStore('game', {
       // Clear any existing timer first
       this.clearOptionMoveTimer();
 
-      // Access runtime config inside the action where it's needed
-      const config = useRuntimeConfig();
-      const intervalSeconds = config.public.optionMoveIntervalSeconds as number;
+      // Get interval from settings
+      const intervalSeconds = this.settings.optionMoveIntervalSeconds;
 
       if (intervalSeconds <= 0) {
-          console.warn(`Invalid optionMoveIntervalSeconds: ${intervalSeconds}. Timer not started.`);
+          console.warn(`Invalid optionMoveIntervalSeconds in settings: ${intervalSeconds}. Timer not started.`);
           return; // Don't start if interval is invalid
       }
 
@@ -181,8 +186,8 @@ export const useGameStore = defineStore('game', {
 
         // Find available empty cells
         const emptyCells: { row: number; col: number }[] = [];
-        for (let r = 0; r < this.optionsGridRows; r++) {
-            for (let c = 0; c < this.optionsGridCols; c++) {
+        for (let r = 0; r < this.settings.optionsGridRows; r++) {
+            for (let c = 0; c < this.settings.optionsGridCols; c++) {
                 if (!this.occupiedCells.has(`${r}-${c}`)) {
                     emptyCells.push({ row: r, col: c });
                 }
@@ -261,11 +266,7 @@ export const useGameStore = defineStore('game', {
       console.log('Generating new round...');
       const targetLength = 2;
       // Access runtime config within the action
-      // Note: Accessing runtimeConfig directly might be tricky in store setup phase.
-      // A common pattern is to pass config when initializing or calling actions,
-      // but let's try accessing it directly here first. If it fails, we'll adjust.
-      const config = useRuntimeConfig(); // Get runtime config
-      const numberOfOptions = config.public.optionCount as number; // Use configured value
+      const numberOfOptions = this.settings.optionCount; // Use configured value from settings
 
       // Generate the target letters
       this.currentTarget = generateRandomLetters(targetLength);
@@ -311,19 +312,19 @@ export const useGameStore = defineStore('game', {
           // Find the next available cell
           while (this.occupiedCells.has(`${currentGridRow}-${currentGridCol}`)) {
               currentGridCol++;
-              if (currentGridCol >= this.optionsGridCols) {
+              if (currentGridCol >= this.settings.optionsGridCols) {
                   currentGridCol = 0;
                   currentGridRow++;
                   // Basic check to prevent infinite loop if grid is too small
-                  if (currentGridRow >= this.optionsGridRows) {
-                      console.error("Options grid is too small for the number of options!");
+                  if (currentGridRow >= this.settings.optionsGridRows) {
+                      console.error("Options grid is too small for the number of options! Check settings.");
                       // Handle error appropriately - maybe resize grid or throw error
                       break;
                   }
               }
           }
 
-          if (currentGridRow < this.optionsGridRows) { // Check if a spot was found
+          if (currentGridRow < this.settings.optionsGridRows) { // Check if a spot was found
               const positionKey = `${currentGridRow}-${currentGridCol}`;
               this.occupiedCells.add(positionKey);
               assignedOptions.push({
