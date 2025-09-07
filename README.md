@@ -83,6 +83,31 @@ We welcome contributions from everyone! If you would like to contribute, please 
 
 Your input can help improve the project for everyone!
 
+## Running from Source (via npm)
+
+If you prefer running the app from source instead of downloading a release:
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/manishanis/eye-training.git
+   cd eye-training
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+3. Start the development server:
+
+   ```bash
+   npm run dev
+   ```
+
+4. Open the app in your browser (usually at `http://localhost:3000/eye-training`).
+
 ## License
 
 This project is licensed under the MIT License. See the LICENSE file for more details.
